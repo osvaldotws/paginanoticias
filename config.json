@@ -5,6 +5,11 @@
   "use_rss": false,
   "rss_url": "",
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "ai_scraping": {
+    "enabled": true,
+    "instructions": "Extrae las noticias principales de esta página. Para cada noticia, identifica título, enlace al artículo completo, resumen/bajada, fecha de publicación y URL de imagen principal si hay.",
+    "max_articles_to_extract": 5
+  },
   "scraping_config": {
     "container_selector": "article.card, article.teaser, div.news-item, article, .nota-item",
     "title_selector": "h2, h3, .title, .headline, h2 a, h3 a, .titulo",
