@@ -81,7 +81,7 @@ def fetch_news_from_web(config):
     """Extraer noticias scrapeando una página web"""
     news_page_url = config['news_page_url']
     base_url = config['base_url']
-    scraping_config = config['scraping_config']
+    scraping_config = config.get('scraping_config', {})
     
     print(f"🕷️ Scrapeando: {news_page_url}")
     
@@ -97,83 +97,19 @@ def fetch_news_from_web(config):
         # Pequeña pausa para ser respetuosos con el servidor
         time.sleep(random.uniform(2, 3))
         
-        soup = BeautifulSoup(response.text, 'html.parser')
-        articles = []
+        # Verificar si AI scraping está habilitado
+        ai_scraping = config.get('ai_scraping', {})
+        if ai_scraping.get('enabled', False):
+            print("🤖 Usando AI para extracción de noticias...")
+            articles = extract_news_with_ai(response.text, base_url, ai_scraping)
+            if articles:
+                print(f"✅ AI extrajo {len(articles)} artículos")
+                return articles
+            else:
+                print("⚠️ AI no pudo extraer artículos, usando método tradicional...")
         
-        # Encontrar todos los contenedores de artículos
-        container_selector = scraping_config.get('container_selector', 'article')
-        containers = soup.select(container_selector)
-        
-        print(f"📦 Contenedores encontrados: {len(containers)}")
-        
-        for container in containers[:scraping_config.get('max_articles_to_process', 5)]:
-            try:
-                # Extraer título
-                title_selector = scraping_config.get('title_selector', 'h2 a')
-                title_elem = container.select_one(title_selector)
-                if not title_elem:
-                    # Intentar encontrar título en el contenedor actual si es un enlace
-                    if container.name == 'a' or container.has_attr('href'):
-                        title_elem = container
-                    else:
-                        continue
-                
-                title = title_elem.get_text(strip=True)
-                if not title or len(title) < 5:
-                    continue
-                
-                # Extraer link
-                link_selector = scraping_config.get('link_selector', 'a[href]')
-                link_elem = container.select_one(link_selector) if container.name != 'a' else container
-                if not link_elem:
-                    continue
-                    
-                link_href = link_elem.get('href')
-                if not link_href:
-                    continue
-                    
-                link = urljoin(base_url, link_href)
-                
-                # Validar que el link sea del mismo dominio
-                parsed_link = urlparse(link)
-                parsed_base = urlparse(base_url)
-                if parsed_link.netloc != parsed_base.netloc:
-                    continue
-                
-                # Extraer resumen
-                summary_selector = scraping_config.get('summary_selector', 'p')
-                summary_elem = container.select_one(summary_selector)
-                summary = summary_elem.get_text(strip=True) if summary_elem else ''
-                
-                # Si no hay resumen, usar el título o un fragmento
-                if not summary:
-                    summary = title[:200]
-                
-                # Extraer fecha si existe
-                date_selector = scraping_config.get('date_selector', 'time')
-                date_elem = container.select_one(date_selector)
-                published = date_elem.get_text(strip=True) if date_elem else ''
-                
-                # Extraer imagen si existe
-                image_selector = scraping_config.get('image_selector', 'img[src]')
-                image_elem = container.select_one(image_selector)
-                image_url = urljoin(base_url, image_elem.get('src')) if image_elem and image_elem.get('src') else None
-                
-                articles.append({
-                    'title': title,
-                    'link': link,
-                    'summary': summary[:500],  # Limitar longitud
-                    'published': published,
-                    'image_url': image_url,
-                    'full_content': None
-                })
-                
-            except Exception as e:
-                print(f"⚠️ Error procesando artículo: {e}")
-                continue
-        
-        print(f"✅ Encontrados {len(articles)} artículos válidos")
-        return articles
+        # Método tradicional con selectores (fallback)
+        return extract_news_with_selectors(response.text, base_url, scraping_config)
         
     except requests.exceptions.RequestException as e:
         print(f"❌ Error de red al scrapear: {e}")
@@ -182,6 +118,164 @@ def fetch_news_from_web(config):
         print(f"❌ Error al scrapear: {e}")
         traceback.print_exc()
         return []
+
+
+def extract_news_with_ai(html_content, base_url, ai_config):
+    """Usar Gemini AI para extraer noticias del HTML sin selectores"""
+    gemini_client = initialize_gemini()
+    
+    instructions = ai_config.get('instructions', 'Extrae las noticias principales de esta página.')
+    max_articles = ai_config.get('max_articles_to_extract', 5)
+    
+    # Truncar HTML si es muy largo (Gemini tiene límite de tokens)
+    max_html_length = 50000
+    if len(html_content) > max_html_length:
+        html_content = html_content[:max_html_length] + "\n... [HTML truncado] ..."
+    
+    prompt = f"""
+Eres un extractor de datos experto. Analiza el siguiente HTML de una página de noticias y extrae las {max_articles} noticias principales.
+
+{instructions}
+
+El HTML es:
+{html_content}
+
+Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura exacta, sin texto adicional:
+[
+  {{
+    "title": "Título completo de la noticia",
+    "link": "URL completa o relativa al artículo",
+    "summary": "Resumen o bajada de la noticia (opcional)",
+    "published": "Fecha de publicación si está disponible (opcional)",
+    "image_url": "URL de la imagen principal si hay (opcional)"
+  }}
+]
+
+Reglas importantes:
+1. Los links deben ser URLs completas. Si son relativas, prefijalas con "{base_url}"
+2. Las imágenes también deben ser URLs completas
+3. Si algún campo no existe, usa null o string vacío
+4. Devuelve SOLO el JSON, sin markdown ni explicaciones
+"""
+    
+    try:
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents=prompt,
+            config={'response_mime_type': 'application/json'}
+        )
+        
+        result = json.loads(response.text)
+        
+        # Validar y normalizar los resultados
+        articles = []
+        for item in result:
+            if not item.get('title') or len(item.get('title', '')) < 5:
+                continue
+            
+            link = item.get('link', '')
+            if link and not link.startswith('http'):
+                link = urljoin(base_url, link)
+            
+            image_url = item.get('image_url')
+            if image_url and not image_url.startswith('http'):
+                image_url = urljoin(base_url, image_url)
+            
+            articles.append({
+                'title': item['title'].strip(),
+                'link': link,
+                'summary': item.get('summary', '').strip() or item['title'].strip()[:200],
+                'published': item.get('published', ''),
+                'image_url': image_url,
+                'full_content': None
+            })
+        
+        return articles[:max_articles]
+        
+    except Exception as e:
+        print(f"⚠️ Error en AI scraping: {e}")
+        return []
+
+
+def extract_news_with_selectors(html_content, base_url, scraping_config):
+    """Método tradicional de extracción usando selectores CSS"""
+    soup = BeautifulSoup(html_content, 'html.parser')
+    articles = []
+    
+    # Encontrar todos los contenedores de artículos
+    container_selector = scraping_config.get('container_selector', 'article')
+    containers = soup.select(container_selector)
+    
+    print(f"📦 Contenedores encontrados: {len(containers)}")
+    
+    for container in containers[:scraping_config.get('max_articles_to_process', 5)]:
+        try:
+            # Extraer título
+            title_selector = scraping_config.get('title_selector', 'h2 a')
+            title_elem = container.select_one(title_selector)
+            if not title_elem:
+                # Intentar encontrar título en el contenedor actual si es un enlace
+                if container.name == 'a' or container.has_attr('href'):
+                    title_elem = container
+                else:
+                    continue
+            
+            title = title_elem.get_text(strip=True)
+            if not title or len(title) < 5:
+                continue
+            
+            # Extraer link
+            link_selector = scraping_config.get('link_selector', 'a[href]')
+            link_elem = container.select_one(link_selector) if container.name != 'a' else container
+            if not link_elem:
+                continue
+                
+            link_href = link_elem.get('href')
+            if not link_href:
+                continue
+                
+            link = urljoin(base_url, link_href)
+            
+            # Validar que el link sea del mismo dominio
+            parsed_link = urlparse(link)
+            parsed_base = urlparse(base_url)
+            if parsed_link.netloc != parsed_base.netloc:
+                continue
+            
+            # Extraer resumen
+            summary_selector = scraping_config.get('summary_selector', 'p')
+            summary_elem = container.select_one(summary_selector)
+            summary = summary_elem.get_text(strip=True) if summary_elem else ''
+            
+            # Si no hay resumen, usar el título o un fragmento
+            if not summary:
+                summary = title[:200]
+            
+            # Extraer fecha si existe
+            date_selector = scraping_config.get('date_selector', 'time')
+            date_elem = container.select_one(date_selector)
+            published = date_elem.get_text(strip=True) if date_elem else ''
+            
+            # Extraer imagen si existe
+            image_selector = scraping_config.get('image_selector', 'img[src]')
+            image_elem = container.select_one(image_selector)
+            image_url = urljoin(base_url, image_elem.get('src')) if image_elem and image_elem.get('src') else None
+            
+            articles.append({
+                'title': title,
+                'link': link,
+                'summary': summary[:500],  # Limitar longitud
+                'published': published,
+                'image_url': image_url,
+                'full_content': None
+            })
+            
+        except Exception as e:
+            print(f"⚠️ Error procesando artículo: {e}")
+            continue
+    
+    print(f"✅ Encontrados {len(articles)} artículos válidos")
+    return articles
 
 def extract_full_content(article_link, config):
     """Extraer contenido completo de un artículo"""
