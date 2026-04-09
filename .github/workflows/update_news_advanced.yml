@@ -1,0 +1,38 @@
+name: Hourly News Update with Images
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Ejecución cada hora exacta
+  workflow_dispatch: # Permite ejecutarlo manualmente para pruebas
+
+permissions:
+  contents: write # Crucial para que el bot pueda guardar el index.html y las imágenes
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-genai feedparser
+
+      - name: Run script (Advanced with Images)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python script_advanced.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "NewsBot"
+          git config --global user.email "bot@github.com"
+          git add index.html news_history.json latest_image.png
+          git commit -m "Update news and assets: $(date)" || exit 0
+          git push

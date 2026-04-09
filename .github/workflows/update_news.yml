@@ -1,0 +1,38 @@
+name: Hourly News Update
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Ejecución cada hora exacta
+  workflow_dispatch: # Permite ejecutarlo manualmente para pruebas
+
+permissions:
+  contents: write # Crucial para que el bot pueda guardar el index.html
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-genai feedparser
+
+      - name: Run script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python script.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "NewsBot"
+          git config --global user.email "bot@github.com"
+          git add index.html news_history.json
+          git commit -m "Update news: $(date)" || exit 0
+          git push
