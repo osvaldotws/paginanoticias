@@ -2,78 +2,47 @@ name: Hourly News Update
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Ejecutar cada hora exacta
-  workflow_dispatch:  # Permitir ejecución manual para pruebas
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v5 # Actualizado a v5
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai feedparser beautifulsoup4 requests
+          pip install google-genai feedparser beautifulsoup4 requests lxml
 
-      - name: Run news scraper
+      - name: Run News Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python script_advanced.py
-
-      - name: Configure Git
         run: |
-          git config --global user.name "NewsBot AI"
-          git config --global user.email "newsbot@github-actions.com"
+          echo "Iniciando script..."
+          python script_advanced.py
+          echo "Script finalizado."
 
-      - name: Commit and push changes
+      - name: Commit and Push changes
         run: |
-          git add index.html news_history.json latest_image.png config.json 2>/dev/null || true
+          git config --global user.name "NewsBot"
+          git config --global user.email "bot@github.com"
+          git add index.html archive.html news_history.json archive.json latest_image.png 2>/dev/null || true
           if git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "No hay cambios nuevos."
           else
-            git commit -m "🤖 Auto-update: $(date '+%Y-%m-%d %H:%M')"
+            git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M')"
             git push
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
