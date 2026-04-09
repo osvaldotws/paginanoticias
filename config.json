@@ -1,7 +1,7 @@
 {
   "source_name": "MIT Technology Review",
-  "base_url": "https://www.technologyreview.com",
-  "news_page_url": "https://www.technologyreview.com/latest/",
+  "base_url": "https://www.elancasti.com.ar/",
+  "news_page_url": "https://www.elancasti.com.ar/",
   "use_rss": false,
   "rss_url": "",
   "scraping_config": {
