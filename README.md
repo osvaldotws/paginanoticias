@@ -1,126 +1,161 @@
-# Sistema de Noticias Automatizado con IA
+# 🤖 TechNews AI - Sistema de Noticias Automatizado
 
-Este proyecto utiliza **GitHub Actions** y **Google Gemini AI** para crear un sistema automatizado que:
-1. Lee las últimas noticias de un feed RSS
-2. Procesa el contenido con IA para reescribirlo en español
-3. Genera una página web automáticamente
-4. Publica la noticia en GitHub Pages
+Sistema automatizado que extrae noticias de sitios web (con o sin RSS), las procesa con Gemini AI, genera imágenes con Imagen 3, y publica un sitio web profesional en GitHub Pages.
 
-## Estructura del Proyecto
+## ✨ Características Principales
+
+### 🔍 Extracción Flexible
+- **Soporte RSS**: Lee feeds RSS tradicionales
+- **Web Scraping**: Extrae noticias de sitios sin RSS usando selectores CSS configurables
+- **Contenido Completo**: Opción para extraer el artículo completo visitando cada URL
+
+### 🧠 Procesamiento con IA
+- **Redacción Profesional**: Gemini AI reescribe noticias con tono periodístico
+- **Clasificación Automática**: Categoriza en IA, Robótica, Biotech, Cybersecurity, Startups, General
+- **Keywords SEO**: Genera palabras clave automáticamente
+- **Imágenes Personalizadas**: Genera imágenes únicas con Imagen 3
+
+### 🌐 Frontend Moderno
+- **Diseño Responsive**: Se adapta a móviles, tablets y desktop
+- **Filtros Interactivos**: Filtra por categoría en tiempo real
+- **Modal de Lectura**: Vista detallada con animaciones suaves
+- **Contador de Vistas**: Trackea lecturas por artículo
+- **Tipografía Premium**: Inter + Playfair Display de Google Fonts
+
+## 📁 Estructura del Proyecto
 
 ```
-├── script.py                 # Script básico (solo texto)
-├── script_advanced.py        # Script avanzado (texto + imágenes)
-├── template.html             # Plantilla HTML para las noticias
-├── requirements.txt          # Dependencias de Python
-├── news_history.json         # Historial de noticias procesadas (auto-generado)
-├── index.html                # Página web resultante (auto-generado)
-├── latest_image.png          # Imagen generada por IA (auto-generado)
+├── script_advanced.py      # Script principal de extracción y procesamiento
+├── template.html           # Plantilla HTML con diseño moderno
+├── config.json             # Configuración de fuentes y selectores
+├── news_history.json       # Historial de noticias procesadas
+├── requirements.txt        # Dependencias de Python
+├── .gitignore              # Archivos ignorados por Git
+├── README.md               # Esta documentación
 └── .github/
     └── workflows/
-        ├── update_news.yml           # Workflow básico
-        └── update_news_advanced.yml  # Workflow avanzado con imágenes
+        └── update_news.yml # Automatización horaria con GitHub Actions
 ```
 
-## Configuración
+## 🚀 Configuración Paso a Paso
 
-### 1. Generar tu API Key de Gemini
+### 1. Crear Repositorio en GitHub
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
+git push -u origin main
+```
 
+### 2. Obtener API Key de Gemini
 1. Ve a [Google AI Studio](https://aistudio.google.com/app/apikey)
 2. Inicia sesión con tu cuenta de Google
-3. Haz clic en "Create API Key"
+3. Haz clic en "Get API Key"
 4. Copia la clave generada
 
-### 2. Configurar Secretos en GitHub
-
-1. En tu repositorio de GitHub, ve a **Settings > Secrets and variables > Actions**
+### 3. Configurar Secretos en GitHub
+1. En tu repositorio, ve a **Settings** → **Secrets and variables** → **Actions**
 2. Haz clic en **New repository secret**
 3. Nombre: `GEMINI_API_KEY`
-4. Valor: (Pega tu clave de Google)
-5. Haz clic en **Add secret**
+4. Valor: (pega tu API Key de Gemini)
+5. Guarda
 
-### 3. Activar GitHub Pages
+### 4. Activar GitHub Pages
+1. Ve a **Settings** → **Pages**
+2. En **Build and deployment**:
+   - Source: **GitHub Actions**
+3. Guarda
 
-1. Ve a **Settings > Pages**
-2. En "Build and deployment", selecciona:
-   - **Source**: Deploy from a branch
-   - **Branch**: `main` y carpeta `/ (root)`
-3. Haz clic en **Save**
+### 5. Configurar Fuente de Noticias (config.json)
 
-En unos minutos, tu web estará disponible en: `https://tu-usuario.github.io/tu-repo/`
+#### Opción A: Usando RSS
+```json
+{
+  "source_name": "MIT Technology Review",
+  "use_rss": true,
+  "rss_url": "https://www.technologyreview.com/feed/",
+  "base_url": "https://www.technologyreview.com"
+}
+```
 
-## Scripts Disponibles
+#### Opción B: Web Scraping (sin RSS)
+```json
+{
+  "source_name": "Nombre del Sitio",
+  "use_rss": false,
+  "news_page_url": "https://ejemplo.com/noticias",
+  "base_url": "https://ejemplo.com",
+  "scraping_config": {
+    "container_selector": "article",
+    "title_selector": "h2 a",
+    "link_selector": "a",
+    "summary_selector": "p.summary",
+    "date_selector": "time",
+    "max_articles_to_process": 5
+  },
+  "content_extraction": {
+    "extract_full_content": true,
+    "body_selector": ".article-body"
+  }
+}
+```
 
-### Opción 1: Script Básico (`script.py`)
-- Lee noticias del feed RSS
-- Procesa el contenido con Gemini AI
-- Genera HTML con texto
-- **No genera imágenes**
-
-### Opción 2: Script Avanzado (`script_advanced.py`)
-- Lee noticias del feed RSS
-- Procesa el contenido con Gemini AI
-- Genera imágenes con Imagen 3
-- Genera HTML con texto e imagen
-- **Requiere acceso a Imagen 3 API**
-
-## Workflows de GitHub Actions
-
-### Workflow Básico (`update_news.yml`)
-- Se ejecuta cada hora (`0 * * * *`)
-- Usa `script.py`
-- Actualiza solo texto
-
-### Workflow Avanzado (`update_news_advanced.yml`)
-- Se ejecuta cada hora (`0 * * * *`)
-- Usa `script_advanced.py`
-- Actualiza texto e imágenes
-
-## Ejecución Manual
-
-Para probar el script localmente:
-
+### 6. Ejecutar Manualmente (Opcional)
 ```bash
-# Instalar dependencias
 pip install -r requirements.txt
-
-# Exportar tu API key
 export GEMINI_API_KEY="tu-api-key-aqui"
-
-# Ejecutar script básico
-python script.py
-
-# O ejecutar script avanzado
 python script_advanced.py
 ```
 
-## Personalización
+## ⚙️ Automatización
 
-### Cambiar la fuente de noticias
+El workflow se ejecuta:
+- **Automáticamente**: Cada hora exacta (`0 * * * *`)
+- **Manualmente**: Desde GitHub Actions → "Hourly News Update" → "Run workflow"
 
-Edita la variable `RSS_URL` en el script:
+## 🎨 Personalización del Diseño
 
-```python
-RSS_URL = "https://www.technologyreview.com/feed/"  # Cambia esta URL
-```
+Edita `template.html` para cambiar:
+- Colores (variables CSS en `:root`)
+- Fuentes (Google Fonts)
+- Layout (CSS Grid/Flexbox)
+- Animaciones
 
-Algunas fuentes RSS populares:
-- MIT Technology Review: `https://www.technologyreview.com/feed/`
-- TechCrunch: `https://techcrunch.com/feed/`
-- The Verge: `https://www.theverge.com/rss/index.xml`
-- Wired: `https://www.wired.com/feed/rss`
+## 🔧 Troubleshooting
 
-### Modificar el prompt de IA
+### Error: "No articles found"
+- Verifica que los selectores CSS en `config.json` coincidan con la estructura HTML del sitio
+- Usa las herramientas de desarrollador del navegador para inspeccionar los elementos
 
-Edita la función `process_with_gemini()` o `process_content_and_image_prompt()` para cambiar cómo la IA reescribe las noticias.
+### Error: "API key not valid"
+- Asegúrate de haber configurado el secreto `GEMINI_API_KEY` correctamente
+- Verifica que la API Key esté activa en Google AI Studio
 
-## Notas Importantes
+### Error: "Workflow failed"
+- Revisa los logs en GitHub Actions
+- Verifica que todas las dependencias estén en `requirements.txt`
 
-1. **API Key**: Nunca commits tu API Key al repositorio. Usa siempre los secrets de GitHub.
-2. **Historial**: El archivo `news_history.json` guarda las últimas 50 noticias procesadas para evitar duplicados.
-3. **Costos**: El uso de la API de Gemini tiene costos asociados. Revisa la documentación oficial.
-4. **Imágenes**: La generación de imágenes requiere acceso a Imagen 3, que puede tener disponibilidad limitada.
+## 📊 Métricas y Análisis
 
-## Licencia
+El sistema trackea:
+- Número total de artículos
+- Vistas por artículo (localStorage)
+- Fecha de última actualización
+- Historial de últimos 50 artículos
 
-MIT License
+## 🛡️ Consideraciones Legales
+
+- Respeta los `robots.txt` de cada sitio
+- Añade delays entre requests (ya implementado)
+- Cita siempre la fuente original
+- Usa solo para fines personales/educativos
+
+## 📝 Licencia
+
+MIT License - Libre uso y modificación
+
+---
+
+**Hecho con ❤️ y Gemini AI**

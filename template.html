@@ -3,25 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA News Feed</title>
+    <title>TechNews AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h1 { color: #1a1a1a; font-size: 2.5rem; margin-bottom: 10px; }
-        .meta { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
-        .main-image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 30px; display: block; }
-        .content { font-size: 1.1rem; line-height: 1.8; color: #444; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 30px 0; }
+        :root{--primary:#2563eb;--secondary:#0f172a;--accent:#f59e0b;--bg:#f8fafc;--surface:#fff;--text:#1e293b;--text-muted:#64748b}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+        header{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;padding:2rem 0;position:sticky;top:0;z-index:100}
+        .header-content{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+        .logo{display:flex;align-items:center;gap:.75rem}
+        .logo-icon{width:48px;height:48px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem}
+        .logo-text h1{font-family:Playfair Display,serif;font-size:1.75rem}
+        .logo-text p{font-size:.875rem;opacity:.9}
+        .stats{display:flex;gap:1rem}
+        .stat{background:rgba(255,255,255,.15);padding:.75rem 1.25rem;border-radius:10px;text-align:center}
+        .stat-num{font-size:1.5rem;font-weight:700;display:block}
+        .stat-label{font-size:.75rem;opacity:.9;text-transform:uppercase}
+        nav{background:var(--surface);border-bottom:1px solid #e2e8f0;padding:1rem 0;position:sticky;top:80px;z-index:99}
+        .nav-content{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;gap:.5rem;overflow-x:auto}
+        .nav-content::-webkit-scrollbar{display:none}
+        .cat-btn{padding:.5rem 1.25rem;border:1px solid #e2e8f0;background:var(--surface);border-radius:25px;font-size:.875rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:all .3s;white-space:nowrap}
+        .cat-btn:hover,.cat-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-2px)}
+        main{max-width:1200px;margin:0 auto;padding:3rem 2rem}
+        .featured{background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.1);margin-bottom:3rem;display:grid;grid-template-columns:1fr 1fr}
+        .feat-img-container{position:relative;overflow:hidden;min-height:400px}
+        .feat-img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+        .featured:hover .feat-img{transform:scale(1.05)}
+        .badge{position:absolute;top:1.5rem;left:1.5rem;background:var(--accent);color:#fff;padding:.5rem 1rem;border-radius:25px;font-size:.75rem;font-weight:700;text-transform:uppercase}
+        .feat-content{padding:3rem;display:flex;flex-direction:column;justify-content:center}
+        .cat-tag{display:inline-block;background:rgba(37,99,235,.1);color:var(--primary);padding:.375rem .875rem;border-radius:20px;font-size:.75rem;font-weight:600;text-transform:uppercase;margin-bottom:1rem;align-self:flex-start}
+        .feat-title{font-family:Playfair Display,serif;font-size:2.5rem;font-weight:700;line-height:1.2;margin-bottom:1rem}
+        .feat-summary{font-size:1.125rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.7}
+        .meta{display:flex;align-items:center;gap:1.5rem;font-size:.875rem;color:var(--text-muted);margin-top:auto}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:2rem}
+        .card{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);transition:all .3s;cursor:pointer}
+        .card:hover{transform:translateY(-8px);box-shadow:0 20px 40px rgba(0,0,0,.15)}
+        .card-img-cont{position:relative;height:200px;overflow:hidden}
+        .card-img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+        .card:hover .card-img{transform:scale(1.1)}
+        .card-cat{position:absolute;top:1rem;left:1rem;background:rgba(255,255,255,.95);color:var(--primary);padding:.25rem .75rem;border-radius:15px;font-size:.7rem;font-weight:700;text-transform:uppercase}
+        .card-body{padding:1.5rem}
+        .card-title{font-size:1.25rem;font-weight:600;line-height:1.4;margin-bottom:.75rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .card-excerpt{font-size:.95rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+        .tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+        .tag{background:var(--bg);color:var(--text-muted);padding:.25rem .625rem;border-radius:12px;font-size:.75rem}
+        .card-footer{display:flex;justify-content:space-between;padding-top:1rem;border-top:1px solid #e2e8f0;font-size:.8rem;color:var(--text-muted)}
+        .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:none;justify-content:center;align-items:center;padding:2rem;backdrop-filter:blur(5px)}
+        .modal-backdrop.active{display:flex}
+        .modal{background:var(--surface);border-radius:20px;max-width:900px;max-height:90vh;overflow-y:auto;position:relative;animation:slideIn .3s}
+        @keyframes slideIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        .modal-close{position:absolute;top:1.5rem;right:1.5rem;width:40px;height:40px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;font-size:1.5rem;color:var(--text-muted);transition:all .3s;z-index:10}
+        .modal-close:hover{background:var(--primary);color:#fff;transform:rotate(90deg)}
+        .modal-img{width:100%;height:400px;object-fit:cover;border-radius:20px 20px 0 0}
+        .modal-body{padding:3rem}
+        .modal-cat{display:inline-block;background:rgba(37,99,235,.1);color:var(--primary);padding:.5rem 1rem;border-radius:20px;font-size:.8rem;font-weight:600;text-transform:uppercase;margin-bottom:1.5rem}
+        .modal-title{font-family:Playfair Display,serif;font-size:2.5rem;font-weight:700;line-height:1.2;margin-bottom:1.5rem}
+        .modal-meta{display:flex;gap:2rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid #e2e8f0;font-size:.9rem;color:var(--text-muted)}
+        .modal-text{font-size:1.125rem;line-height:1.8}
+        .modal-text p{margin-bottom:1.5rem}
+        .modal-tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:2rem;padding-top:2rem;border-top:1px solid #e2e8f0}
+        .modal-source{margin-top:2rem;padding:1rem;background:var(--bg);border-radius:10px;font-size:.875rem;color:var(--text-muted)}
+        .modal-source a{color:var(--primary);text-decoration:none;font-weight:500}
+        footer{background:var(--secondary);color:#fff;padding:3rem 2rem;margin-top:4rem}
+        .footer-content{max-width:1200px;margin:0 auto;text-align:center}
+        .footer-logo{font-family:Playfair Display,serif;font-size:2rem;margin-bottom:1rem}
+        .footer-text{opacity:.8;margin-bottom:1.5rem;max-width:600px;margin-left:auto;margin-right:auto}
+        .badges{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap}
+        .badge-sm{background:rgba(255,255,255,.1);padding:.5rem 1rem;border-radius:20px;font-size:.8rem}
+        .empty{text-align:center;padding:4rem 2rem;color:var(--text-muted);display:none}
+        .empty-icon{font-size:4rem;margin-bottom:1rem;opacity:.5}
+        @media(max-width:768px){.header-content{flex-direction:column;text-align:center}.featured{grid-template-columns:1fr}.feat-img-container{min-height:250px}.feat-content{padding:2rem}.feat-title{font-size:1.75rem}.grid{grid-template-columns:1fr}.modal-body{padding:2rem}.modal-title{font-size:1.75rem}.modal-img{height:250px}}
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>{{TITULO}}</h1>
-        <div class="meta">Publicado automáticamente el: {{FECHA}}</div>
-        <img src="{{IMAGEN}}" alt="Noticia Imagen" class="main-image">
-        <div class="content">{{CONTENIDO}}</div>
-        <hr>
-        <p><small>Generado mediante automatización con Gemini AI & GitHub Actions.</small></p>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🤖</div>
+                <div class="logo-text"><h1>TechNews AI</h1><p>Noticias curadas por IA</p></div>
+            </div>
+            <div class="stats">
+                <div class="stat"><span class="stat-num" id="total-news">0</span><span class="stat-label">Noticias</span></div>
+                <div class="stat"><span class="stat-num" id="total-cats">0</span><span class="stat-label">Categorías</span></div>
+            </div>
+        </div>
+    </header>
+    <nav><div class="nav-content" id="cat-nav"><button class="cat-btn active" data-cat="all">Todas</button></div></nav>
+    <main>
+        <article class="featured" id="featured"></article>
+        <div class="grid" id="grid"></div>
+        <div class="empty" id="empty"><div class="empty-icon">📰</div><h2>No hay noticias</h2><p>Aparecerán aquí cuando el script las procese.</p></div>
+    </main>
+    <div class="modal-backdrop" id="modal-backdrop">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <img src="" alt="" class="modal-img" id="m-img">
+            <div class="modal-body">
+                <span class="modal-cat" id="m-cat"></span>
+                <h2 class="modal-title" id="m-title"></h2>
+                <div class="modal-meta"><span id="m-date"></span><span id="m-views"></span></div>
+                <div class="modal-text" id="m-text"></div>
+                <div class="modal-tags" id="m-tags"></div>
+                <div class="modal-source" id="m-source"></div>
+            </div>
+        </div>
     </div>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">TechNews AI</div>
+            <p class="footer-text">Sistema automatizado con Gemini AI & GitHub Actions</p>
+            <div class="badges">
+                <span class="badge-sm">🤖 Gemini AI</span><span class="badge-sm">🖼️ Imagen 3</span><span class="badge-sm">⚡ GitHub Actions</span><span class="badge-sm">📡 RSS</span>
+            </div>
+        </div>
+    </footer>
+    <script>
+let data={{NEWS_DATA}},cat='all';
+function init(){renderCats();renderFeat();renderGrid();updateStats();}
+function renderCats(){const n=document.getElementById('cat-nav');Object.keys(data.categories||{}).forEach(c=>{const b=document.createElement('button');b.className='cat-btn';b.dataset.cat=c;b.textContent=c;b.onclick=()=>filter(c);n.appendChild(b);});}
+function filter(c){cat=c;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===c));renderFeat();renderGrid();}
+function renderFeat(){const c=document.getElementById('featured'),f=data.news?.find(n=>n.destacada&&(cat==='all'||n.categoria===cat));if(!f){c.style.display='none';return;}c.style.display='grid';const i=f.imagen||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><rect fill="%232563eb" width="800" height="400"/><text x="400" y="200" text-anchor="middle" fill="white" font-size="24">TechNews AI</text></svg>');c.innerHTML='<div class="feat-img-container"><img src="'+i+'" alt="'+f.titulo+'" class="feat-img"><span class="badge">★ Destacado</span></div><div class="feat-content"><span class="cat-tag">'+f.categoria+'</span><h2 class="feat-title">'+f.titulo+'</h2><p class="feat-summary">'+f.resumen+'</p><div class="meta"><span>📅 '+f.fecha_formateada+'</span><span>👁️ '+f.vistas+' vistas</span></div><button onclick="openModal(\''+f.id+'\')" style="margin-top:1.5rem;padding:.75rem 1.5rem;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer;">Leer completo →</button></div>';}
+function renderGrid(){const g=document.getElementById('grid'),e=document.getElementById('empty');let f=data.news||[];if(cat!=='all')f=f.filter(n=>n.categoria===cat);const gn=f.filter(n=>!n.destacada);if(gn.length===0){g.style.display='none';e.style.display='block';return;}g.style.display='grid';e.style.display='none';g.innerHTML=gn.map(n=>{const i=n.imagen||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect fill="%232563eb" width="400" height="200"/><text x="200" y="100" text-anchor="middle" fill="white" font-size="16">TechNews</text></svg>');return'<article class="card" onclick="openModal(\''+n.id+'\')"><div class="card-img-cont"><img src="'+i+'" alt="'+n.titulo+'" class="card-img"><span class="card-cat">'+n.categoria+'</span></div><div class="card-body"><h3 class="card-title">'+n.titulo+'</h3><p class="card-excerpt">'+n.resumen+'</p><div class="tags">'+(n.palabras_clave?.slice(0,3).map(t=>'<span class="tag">'+t+'</span>').join('')||'')+'</div><div class="card-footer"><span>📅 '+n.fecha_formateada+'</span><span>👁️ '+n.vistas+'</span></div></div></article>';}).join('');}
+function updateStats(){document.getElementById('total-news').textContent=data.news?.length||0;document.getElementById('total-cats').textContent=Object.keys(data.categories||{}).length;}
+function openModal(id){const n=data.news?.find(x=>x.id===id);if(!n)return;n.vistas=(n.vistas||0)+1;const i=n.imagen||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><rect fill="%232563eb" width="800" height="400"/><text x="400" y="200" text-anchor="middle" fill="white" font-size="24">TechNews AI</text></svg>');document.getElementById('m-img').src=i;document.getElementById('m-cat').textContent=n.categoria;document.getElementById('m-title').textContent=n.titulo;document.getElementById('m-date').textContent='📅 '+n.fecha_formateada;document.getElementById('m-views').textContent='👁️ '+n.vistas+' vistas';document.getElementById('m-text').innerHTML=n.contenido?.split('\n\n').map(p=>'<p>'+p+'</p>').join('')||'';document.getElementById('m-tags').innerHTML=n.palabras_clave?.map(t=>'<span class="tag">'+t+'</span>').join('')||'';document.getElementById('m-source').innerHTML='Fuente: <a href="'+n.fuente_original+'" target="_blank">'+n.fuente_original+'</a>';document.getElementById('modal-backdrop').classList.add('active');document.body.style.overflow='hidden';}
+function closeModal(){document.getElementById('modal-backdrop').classList.remove('active');document.body.style.overflow='';}
+document.getElementById('modal-backdrop').addEventListener('click',e=>{if(e.target===document.getElementById('modal-backdrop'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+init();
+    </script>
 </body>
 </html>
