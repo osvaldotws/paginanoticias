@@ -1,19 +1,32 @@
 {
-  "source_name": "MIT Technology Review",
-  "base_url": "https://www.technologyreview.com",
-  "news_page_url": "https://www.technologyreview.com/latest/",
+  "source_name": "El Ancasti",
+  "base_url": "https://www.elancasti.com.ar",
+  "news_page_url": "https://www.elancasti.com.ar/",
   "use_rss": false,
   "rss_url": "",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "scraping_config": {
-    "container_selector": "article", 
-    "title_selector": "h3 a, h2 a, .title a",
-    "link_selector": "a",
-    "summary_selector": "p, .summary, .excerpt",
-    "date_selector": "time, .date",
-    "max_articles_to_process": 3
+    "container_selector": "article.card, article.teaser, div.news-item, article, .nota-item",
+    "title_selector": "h2, h3, .title, .headline, h2 a, h3 a, .titulo",
+    "link_selector": "a[href]",
+    "summary_selector": "p.summary, .excerpt, .description, p.bajada, .bajada, p:nth-of-type(1)",
+    "date_selector": "time, .date, .fecha, span.time",
+    "image_selector": "img[src]",
+    "max_articles_to_process": 5
   },
   "content_extraction": {
     "extract_full_content": true,
-    "body_selector": "article body, .post-content, .entry-content, main article"
+    "body_selector": "article body, .post-content, .entry-content, main article, .contenido, .nota-contenido"
+  },
+  "gemini": {
+    "model_text": "gemini-2.0-flash-exp",
+    "model_image": "imagen-3.0-generate-001",
+    "language": "es"
+  },
+  "output": {
+    "history_file": "news_history.json",
+    "archive_file": "archive.json",
+    "max_history_items": 50,
+    "max_processed_links": 100
   }
 }
