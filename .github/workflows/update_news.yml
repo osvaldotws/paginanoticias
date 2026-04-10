@@ -27,24 +27,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai feedparser beautifulsoup4 requests lxml html5lib
+          pip install google-genai feedparser beautifulsoup4 requests lxml
 
       - name: Run News Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python script_advanced.py || echo "Script completed with warnings"
-
-      - name: Configure Git
-        run: |
-          echo "Iniciando script..."
-          python script_advanced.py
-          echo "Script finalizado."
+        run: python script_advanced.py
 
       - name: Commit and Push changes
         run: |
+          git config --global user.name "NewsBot"
+          git config --global user.email "bot@github.com"
           git add index.html news_history.json latest_image.png 2>/dev/null || true
           if git diff --staged --quiet; then
-            echo "No hay cambios nuevos."
+            echo "No hay cambios para subir."
           else
             git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M')"
             git push
@@ -56,19 +52,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: '.'
-
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v5
