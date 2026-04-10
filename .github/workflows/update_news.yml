@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -40,7 +40,7 @@ jobs:
           git config --global user.email "bot@github.com"
           git add index.html news_history.json latest_image.png 2>/dev/null || true
           if git diff --staged --quiet; then
-            echo "No hay cambios para subir."
+            echo "No hay cambios nuevos."
           else
             git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M')"
             git push
@@ -54,12 +54,13 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v5
+        id: deployment
+        uses: actions/deploy-pages@v4
